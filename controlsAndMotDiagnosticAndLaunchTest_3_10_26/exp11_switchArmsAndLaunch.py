@@ -16,7 +16,7 @@
 
 import numpy as np
 from labscript import *
-from labscriptlib.eedmLabscriptOps.connection_table import ct
+from labscriptlib.eedmLabscriptOps.connection_table_eedmW52 import ct
 from labscript import compiler
 
 
@@ -26,14 +26,14 @@ def set_beam_path(t, mode):
         #MOT_SHUTTER_do.open(t)
         #MRR_SHUTTER_do.close(t)
         LCR_do.go_high(t)
-        LCR_BOT_do.go_low(t)
+        LCR_SPLIT_do.go_low(t)
         #LCR_HOR_ao.constant(t, 0.0)
-        LCR_TOP_ao.constant(t, 0.0)
+        #LCR_TOP_ao.constant(t, 0.0)
     elif mode == 'MRR': #set LCR to V1 (high)
         #MOT_SHUTTER_do.close(t)
         #MRR_SHUTTER_do.open(t)
         LCR_do.go_low(t)
-        #LCR_BOT_do.go_high(t)
+        LCR_SPLIT_do.go_high(t)
         #LCR_HOR_ao.constant(t, 5.0)
         #LCR_TOP_ao.constant(t, 5.0)
     else:
@@ -108,8 +108,9 @@ if __name__ == "__main__":
     bbd301.set_acceleration(1, a_stage)
     bbd301.set_move_distance(1, xf_stage)
     bbd301.set_reset_position(1, MRR_START_POS)
+    bbd301.set_start_position(1, MRR_START_POS)
 
-    if 1: #print stage config for debugging
+    if 0: #print stage config for debugging
         print(f"Stage config:")
         print(f"  xi_stage:    {xi_stage} mm")
         print(f"  xf_stage:    {xf_stage} mm")
@@ -127,6 +128,19 @@ if __name__ == "__main__":
             print(f"  WARNING: stage may still be moving at end of experiment!")
         else:
             print(f"  OK: stage should finish before experiment ends.")
+    if 1: #Stage position at shutter open, TTL->motion jitter 0.1-6 ms
+        def stage_pos(dt):
+            if dt <= 0:
+                return 0.0, 0.0
+            if dt < t_accel:
+                return 0.5*a_stage*dt**2, a_stage*dt
+            return d_accel + v_stage*(dt - t_accel)+MRR_START_POS, v_stage
+
+        print("Position at MRR shutter open (t_shutter = TTL + MRR_TRIG_DELAY):")
+        for jitter in (0.0001, 0.006):
+            dt = MRR_TRIG_DELAY - jitter
+            x, v = stage_pos(dt)
+            print(f"  jitter {jitter*1e3:5.1f} ms -> x = {x:.4f} mm")
 
     # ============================================================
     # Initialize outputs -- MOT arm, everything normal
@@ -145,7 +159,8 @@ if __name__ == "__main__":
     PROBE_SHUTTER_do.close(t)
     
 
-    LCR_HOR_ao.constant(t, 5.0)
+    #LCR_HOR_ao.constant(t, 5.0)
+    #LCR_TOP_ao.constant(t,0.886)
     
     #MOT_SHUTTER_do.open(t)
     #MRR_SHUTTER_do.open(t)
@@ -218,6 +233,9 @@ if __name__ == "__main__":
     # ============================================================
 
     MRR_SHUTTER_2_do.open(t)
+        
+    scope_trig_do.go_high(t)#using this as a scope trigger. Delete this
+    scope_trig_do.go_low(t+0.3)
 
     # ============================================================
     # Trigger stage to start accelerating
@@ -267,11 +285,11 @@ if __name__ == "__main__":
     REPUMP_SHUTTER_do.close(t+0.01) 
     drop_time = t  # atoms begin free fall here
     compiler.shot_properties['drop_time'] = drop_time
-    photon_counter.acquire(t=drop_time+t_PMT_delay, number_of_counts=int(.15e5)) #bins are 10us, hard coded
-    #ai0.acquire(label='TOF_florescence', start_time = drop_time, end_time =t+0.2)
+    #photon_counter.acquire(t=drop_time+t_PMT_delay, number_of_counts=int(.15e5)) #bins are 10us, hard coded
+    ai0.acquire(label='TOF_florescence', start_time = drop_time+.065, end_time =drop_time+0.075)
     
-    scope_trig_do.go_high(t)
-    scope_trig_do.go_low(t+0.02)
+    #scope_trig_do.go_high(drop_time+t_PMT_delay)
+    #scope_trig_do.go_low(drop_time+t_PMT_delay+0.02)
     t_trig = t
 
 

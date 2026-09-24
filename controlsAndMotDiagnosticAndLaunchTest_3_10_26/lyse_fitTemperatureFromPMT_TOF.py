@@ -30,6 +30,8 @@ def fmt(value, error, sig=2):
     return f"{value:.{decimals}f}({err_int})"
 
 
+decimate = 10   # average this many adjacent bins together (1 = no decimation)
+
 run = lyse.Run(lyse.path)
 
 try:
@@ -54,6 +56,12 @@ rate = np.diff(cum_counts) / dt          # counts per second in each interval
 t_mid = 0.5 * (t_raw[1:] + t_raw[:-1])   # midpoint of each interval
 t = t_mid + t_PMT_delay                  # time since drop
 values = rate
+
+
+if decimate > 1:
+    n = (len(values) // decimate) * decimate
+    t = t[:n].reshape(-1, decimate).mean(axis=1)
+    values = values[:n].reshape(-1, decimate).mean(axis=1)
  
 # --- Initial guesses (positive peak) ---------------------------------------
 offset0 = np.median(values)

@@ -7,8 +7,8 @@ from scipy.optimize import curve_fit
 import lyse
 import h5py
 
-#path_to_data = 'data/traces/TOF_florescence'
-path_to_data = 'data/traces/photon_counts'
+path_to_data = 'data/traces/TOF_florescence'
+#path_to_data = 'data/traces/photon_counts'
 
 def neg_gaussian(t, offset, amp, t0, sigma):
     return offset - amp * np.exp(-(t - t0) ** 2 / (2 * sigma ** 2))
@@ -64,7 +64,8 @@ if fit_ok:
         f"$A$ = {offset:.4g} V\n"
         f"$B$ = {amp*1000:.4g} mV\n"
         f"$t_0$ = {t0*1000:.4g} ms\n"
-        f"$\\sigma$ = {sigma*1000:.4g} ms\n"
+        f"$\\sigma$ = {sigma*1000:.4g} ms\n" +
+        f"data ponts: {len(t)}"
     )
     plt.plot(t_fit, neg_gaussian(t_fit, *popt), '-', label=fit_label)
 
