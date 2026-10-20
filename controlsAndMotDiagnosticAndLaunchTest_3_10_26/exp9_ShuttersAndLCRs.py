@@ -7,7 +7,7 @@
 # All other outputs are set at the same time as the coil trigger.
 
 from labscript import *
-from labscriptlib.eedmLabscriptOps.connection_table import ct
+from labscriptlib.eedmLabscriptOps.connection_table_eedmW52 import ct
 
 if __name__ == "__main__":
     ct()
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     MOT_COIL_do.go_low(t)
     REPUMP_SHUTTER_do.close(t)
     MAIN_REL_JUMP_do.go_low(t)
-    REPUMP_REL_JUMP_do.go_low(t)
+    #REPUMP_REL_JUMP_do.go_low(t)
     MRR_TRIG_do.go_low(t)
     MOT_SHUTTER_do.close(t)
     MRR_SHUTTER_do.close(t)
@@ -46,8 +46,8 @@ if __name__ == "__main__":
         REPUMP_SHUTTER_do.open(t)
     if MAIN_REL_JUMP:
         MAIN_REL_JUMP_do.go_high(t)
-    if REPUMP_REL_JUMP:
-        REPUMP_REL_JUMP_do.go_high(t)
+    #if REPUMP_REL_JUMP:
+    #    REPUMP_REL_JUMP_do.go_high(t)
     if MRR_TRIG:
         MRR_TRIG_do.go_high(t)
     if MOT_SHUTTER:

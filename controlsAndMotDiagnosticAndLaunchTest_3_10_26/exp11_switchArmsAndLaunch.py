@@ -285,8 +285,9 @@ if __name__ == "__main__":
     REPUMP_SHUTTER_do.close(t+0.01) 
     drop_time = t  # atoms begin free fall here
     compiler.shot_properties['drop_time'] = drop_time
-    #photon_counter.acquire(t=drop_time+t_PMT_delay, number_of_counts=int(.15e5)) #bins are 10us, hard coded
-    ai0.acquire(label='TOF_florescence', start_time = drop_time+.065, end_time =drop_time+0.075)
+    photon_counter.acquire(t=drop_time+t_PMT_delay, number_of_counts=int(.15e5)) #bins are 10us, hard coded
+    ai0.acquire(label='TOF_florescence', start_time = drop_time+t_PMT_delay, end_time =drop_time+t_PMT_delay+0.2)
+    ai1.acquire(label='RelJumpModulation', start_time = drop_time+t_PMT_delay, end_time = drop_time+t_PMT_delay+0.2)
     
     #scope_trig_do.go_high(drop_time+t_PMT_delay)
     #scope_trig_do.go_low(drop_time+t_PMT_delay+0.02)
@@ -302,17 +303,19 @@ if __name__ == "__main__":
     
     #jump probe to blue
     t += 0.001
-    MAIN_JUMP_AMP_ao.constant(t, 0.006)
+    #MAIN_JUMP_AMP_ao.constant(t, 0.006)
+
     t += t_PMT_delay-0.01
     
     #REPUMP_SHUTTER_do.open(t)
     PROBE_SHUTTER_do.open(t)
 
-    t += 0.06
-    
+    t += 0.05
+
+    MAIN_JUMP_AMP_ao.sine(t, 0.1, 0.01 , 2*np.pi*6.123e3,0,0.006,1e5) #time, duration, amp, angfreq, phase, dc_offset samplerate
     add_time_marker(t, "Jump to blue", verbose=True)
     MAIN_REL_JUMP_do.go_high(t)
-    MAIN_REL_JUMP_do.go_low(t+0.03)
+    MAIN_REL_JUMP_do.go_low(t+0.07)
     '''
     t += t_camera_delay
     my_ids_camera.expose(
@@ -342,5 +345,5 @@ if __name__ == "__main__":
     MOT_SHUTTER_do.open(t)
     MRR_SHUTTER_2_do.close(t)
 
-    t += .1
+    t += 2
     stop(t)

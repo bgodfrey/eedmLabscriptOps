@@ -45,7 +45,7 @@ def ct():
         parent_device           = prawn.clocklines[0],
         MAX_name=SLOT_6363,
         clock_terminal          = '/PXI1Slot2/PFI12',         # <-- empty string means "use internal/Onboard clock"
-        acquisition_rate=100e3,
+        acquisition_rate=250e3,  # 3 AI channels share 1 MS/s; 250k divides the 100 MHz timebase exactly
         worker=pxi
     )
 
@@ -88,7 +88,8 @@ def ct():
     # Define analog ins on 6363
     AnalogIn(name='ai0', parent_device=NI6363, connection='ai0')
     AnalogIn(name='ai1', parent_device=NI6363, connection='ai1')
-
+    AnalogIn(name='ai2', parent_device=NI6363, connection='ai2')
+    
     # Again, make sure to define an even number of channels for Labscript to be happy
     #do0 = DigitalOut('do0', ao6738, 'port0/line1')
     DigitalOut('do1_dummy', NI6738, 'port0/line0')  # dummy to make even number of digital lines

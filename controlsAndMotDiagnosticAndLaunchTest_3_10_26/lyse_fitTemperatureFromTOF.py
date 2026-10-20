@@ -15,11 +15,14 @@ def neg_gaussian(t, offset, amp, t0, sigma):
 
 
 with h5py.File(lyse.path, 'r') as f:
+    print('DUMB IS DUMB: ' + str(lyse.path))
     try:
         data = np.array(f[path_to_data])
+        modData = np.array(f['data/traces/RelJumpModulation'])
     except KeyError:
         print("No TOF_florescence trace in this shot. Skipping.")
         raise SystemExit
+
 
     # shot_properties are stored as attrs on the 'shot_properties' group
     try:
@@ -27,9 +30,26 @@ with h5py.File(lyse.path, 'r') as f:
     except (KeyError, AttributeError):
         print("No drop_time saved in this shot. Skipping.")
         raise SystemExit
+    # drop_time is an HDF5 attribute on the 'shot_properties' group -> read with h5py
+    with h5py.File(lyse.path, 'r') as f:
+        try:
+            t_PMT_delay = f['globals'].attrs['t_PMT_delay']
+        except (KeyError, AttributeError):
+            print("No t_PMT_delay global in this shot. Skipping.")
+            raise SystemExit
 
-t = data['t'] - drop_time   # time since drop
+t = data['t'] - drop_time  # time since drop
 values = data['values']
+modValues = modData['values']
+print('values = ', values)
+
+print("TOF dataset:", data)
+print("TOF shape:", data.shape)
+print("TOF dtype:", data.dtype)
+
+print("Mod dataset:", modData)
+print("Mod shape:", modData.shape)
+print("Mod dtype:", modData.dtype)
 
 # --- Initial guesses ---
 offset0 = np.median(values)
@@ -55,7 +75,10 @@ except RuntimeError:
     print("Fit failed to converge.")
 
 plt.figure(figsize=(8, 5))
-plt.plot(t, values, '.', label='data')
+# plt.plot(t, values, '.', label='data')
+plt.plot(t, values)
+#plt.plot(t, modValues+9.662, zorder = -10000)
+
 
 if fit_ok:
     t_fit = np.linspace(t.min(), t.max(), 1000)
@@ -65,11 +88,11 @@ if fit_ok:
         f"$B$ = {amp*1000:.4g} mV\n"
         f"$t_0$ = {t0*1000:.4g} ms\n"
         f"$\\sigma$ = {sigma*1000:.4g} ms\n" +
-        f"data ponts: {len(t)}"
+        f"baseline $\\sigma$: {np.std(values[:300]*1e6):.4g} $\\mu$V\n"
     )
     plt.plot(t_fit, neg_gaussian(t_fit, *popt), '-', label=fit_label)
 
 plt.xlabel('Time since drop (s)')
 plt.ylabel('Photodiode Voltage')
-plt.legend(loc='lower right', fontsize=13)
+plt.legend(loc='lower right', fontsize=21)
 plt.tight_layout()

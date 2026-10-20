@@ -1,0 +1,2 @@
+File,PDA samples,PMT count intervals,Sample rate (Hz),PMT delay (ms),Acquisition start after drop (ms),Sine start after acquisition (ms),Sine stop after acquisition (ms),Enable stop after acquisition (ms),Cumulative photons at end
+2026-10-06_0041_exp11_switchArmsAndLaunch_1.h5,20000,14999,100000.00000378577,484.0,484.0,43.00000000000015,143.00000000000014,113.00000000000016,54965
